@@ -7,7 +7,11 @@ import logging
 from typing import Dict, List, Any, Tuple, Optional
 from datetime import datetime
 from sklearn.preprocessing import StandardScaler
-import tensorflow as tf
+from sklearn.exceptions import NotFittedError
+try:
+    import tensorflow as tf
+except ImportError:
+    tf = None
 
 
 logger = logging.getLogger(__name__)
@@ -84,9 +88,12 @@ class InferenceEngine:
                 # Take last sequence_length readings
                 features = features[-self.sequence_length :]
 
-            # Normalize
+            # Normalize (skipped if scaler has not been loaded/fitted yet)
             if self.normalization == "standard":
-                features = self.scaler.transform(features)
+                try:
+                    features = self.scaler.transform(features)
+                except NotFittedError:
+                    pass
 
             # Add batch dimension
             features = features.reshape(1, self.sequence_length, self.n_features)
@@ -117,9 +124,12 @@ class InferenceEngine:
             ]
             feature_vector = np.array(feature_vector).reshape(1, -1)
 
-            # Normalize
+            # Normalize (skipped if scaler has not been loaded/fitted yet)
             if self.normalization == "standard":
-                feature_vector = self.scaler.transform(feature_vector)
+                try:
+                    feature_vector = self.scaler.transform(feature_vector)
+                except NotFittedError:
+                    pass
 
             return feature_vector
 
@@ -129,7 +139,7 @@ class InferenceEngine:
 
     def predict_rul(
         self,
-        model: tf.keras.Model,
+        model: Any,
         sequence: np.ndarray,
         return_confidence: bool = False,
     ) -> Tuple[float, Optional[Dict[str, float]]]:
@@ -229,7 +239,7 @@ class InferenceEngine:
             return "imminent_failure"
 
     def batch_predict_rul(
-        self, model: tf.keras.Model, sequences: List[np.ndarray]
+        self, model: Any, sequences: List[np.ndarray]
     ) -> List[float]:
         """
         Batch RUL prediction

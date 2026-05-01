@@ -230,7 +230,7 @@ class AlertRule:
     ):
         self.rule_id = rule_id
         self.condition = condition
-        self.severity = AlertSeverity(severity)
+        self.severity = AlertSeverity(severity.lower())
         self.message = message
         self.enabled = enabled
         self.cooldown = cooldown

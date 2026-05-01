@@ -14,8 +14,8 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MODULE_DIRS = [
     PROJECT_ROOT,
     os.path.join(PROJECT_ROOT, "data_generator"),
-    os.path.join(PROJECT_ROOT, "stream_processor"),
     os.path.join(PROJECT_ROOT, "feature_store"),
+    os.path.join(PROJECT_ROOT, "stream_processor"),
     os.path.join(PROJECT_ROOT, "inference_service"),
     os.path.join(PROJECT_ROOT, "alerting"),
     os.path.join(PROJECT_ROOT, "ml_pipeline"),
@@ -23,6 +23,15 @@ MODULE_DIRS = [
 for d in MODULE_DIRS:
     if d not in sys.path:
         sys.path.insert(0, d)
+
+# Both stream_processor/features/ and feature_store/features/ define a `features`
+# package with non-overlapping submodules. Extend the package's search path so
+# imports from either directory resolve correctly.
+import features as _features_pkg
+_features_pkg.__path__ = [
+    os.path.join(PROJECT_ROOT, "stream_processor", "features"),
+    os.path.join(PROJECT_ROOT, "feature_store", "features"),
+]
 
 
 # ---------------------------------------------------------------------------
